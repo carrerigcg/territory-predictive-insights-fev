@@ -222,7 +222,14 @@ Menu 3 → 3 exporta o histórico consultado de um sensor para `exportacoes/hist
 ## 🤖 Uso de IA
 
 - **Onde usei:** assistente de IA (Claude Code, da Anthropic) para estruturar o projeto a partir do enunciado, gerar uma primeira versão das classes, dos testes e deste README, e explicar conceitos (Factory com `Map` de construtores, Mockito com `ArgumentCaptor`, try-with-resources no JDBC).
-- **Como revisei:** _[descreva aqui com as suas palavras o que você realmente fez — ex.: li cada classe e anotei o que cada método faz; rodei `mvnw test` e o menu completo; quebrei o cálculo da média de propósito para ver os testes falharem; conferi cada item do enunciado na seção "Onde está cada conceito pedido"; alterei X e Y]_.
+- **Como revisei:** a revisão foi feita junto com o assistente, verificando cada ponto com evidência executada, e não só lendo o código gerado:
+  - **Requisitos do enunciado:** conferi cada item do PDF contra o código, um por um (resultado na seção [Checklist do enunciado](#-checklist-do-enunciado) e na tabela "Onde está cada conceito pedido", com o arquivo de cada requisito).
+  - **Testes:** rodei `mvnw test` (40 testes, 0 falhas) e fiz um **teste de mutação** — alterei de propósito a divisão da média móvel e 5 testes ficaram vermelhos, comprovando que os testes verificam o cálculo de verdade; depois desfiz a alteração.
+  - **Execução real:** rodei o menu completo com entradas que forçam os erros (população negativa, medição de chuva negativa, código de acesso errado, limiar fora de ordem, texto no lugar de número) e conferi as mensagens; fechei e abri o programa de novo para confirmar que medições e alertas **continuam no banco**.
+  - **Critérios de código:** procurei no código por `catch` vazio, `instanceof`/`if tipo ==` na escolha da estratégia e SQL montado por concatenação — nenhum encontrado (inclusive troquei o `Statement` do script de criação das tabelas por `PreparedStatement`).
+  - **Entrega:** clonei o repositório numa pasta vazia e compilei/rodei exatamente pelos comandos deste README, para garantir que funciona na correção.
+  - **Decisões minhas:** recorte de clima local, entrega individual, repositório público, ajustes no README e commits apenas em meu nome.
+  - Para a conversa de correção, montei um roteiro de estudo pelas três frentes (domínio e exceções, persistência, previsões/alertas/testes), com o arquivo e a linha de cada conceito.
 - Sou capaz de explicar qualquer trecho do código na conversa de correção.
 
 ---
