@@ -13,7 +13,7 @@ Plataforma de monitoramento territorial em **Java 17 + JDBC + H2** que lê senso
 
 | Nome | RM | GitHub |
 |------|----|--------|
-| _[Integrante 1]_ | _[RM]_ | _[@usuario]_ |
+| Guilherme Carreri Giampietro | RM 565676 | [@carrerigcg](https://github.com/carrerigcg) |
 | _[Integrante 2]_ | _[RM]_ | _[@usuario]_ |
 | _[Integrante 3]_ | _[RM]_ | _[@usuario]_ |
 
