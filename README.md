@@ -9,13 +9,13 @@ Plataforma de monitoramento territorial em **Java 17 + JDBC + H2** que lê senso
 
 ---
 
-## 👥 Integrantes
+## 👤 Autor
 
 | Nome | RM | GitHub |
 |------|----|--------|
 | Guilherme Carreri Giampietro | RM 565676 | [@carrerigcg](https://github.com/carrerigcg) |
-| _[Integrante 2]_ | _[RM]_ | _[@usuario]_ |
-| _[Integrante 3]_ | _[RM]_ | _[@usuario]_ |
+
+> Projeto desenvolvido **individualmente** (ver [Divisão de tarefas](#-divisão-de-tarefas)).
 
 ---
 
@@ -149,8 +149,8 @@ territory-predictive-insights-fev/
 ### 4. Padrões criacionais (os três foram aplicados) — justificativa
 | Padrão | Classe | Por que **ali** e não em outro lugar |
 |---|---|---|
-| **Factory** | `servico/FabricaPrevisao` | A estratégia a usar vem da **configuração** (`previsao.estrategias=MEDIA_MOVEL,COMPARACAO`). Sem a fábrica, o serviço precisaria de `if (tipo.equals("MEDIA_MOVEL")) new ...` — exatamente o "if espalhado" que o enunciado proíbe. Com o catálogo `Map`, adicionar uma estratégia é registrar uma linha; serviço e menu não mudam. Não usamos Factory para `Medicao` ou `Alerta` porque eles têm uma única forma de criação: uma fábrica ali seria indireção sem ganho. |
-| **Singleton** | `servico/ConfiguracaoSistema` | Os **limiares** precisam ser *os mesmos* para quem emite alertas (`ServicoMonitoramento`), para quem os altera (`DadosTerritorio.alterarLimiar`) e para quem os mostra (relatório). Duas instâncias poderiam divergir e o sistema alertaria com um limite e exibiria outro. Construtor **privado** + `getInstancia()`. Não usamos Singleton nos DAOs/serviço porque eles recebem dependências pelo construtor — isso é o que permite trocá-los por **mocks** nos testes. |
+| **Factory** | `servico/FabricaPrevisao` | A estratégia a usar vem da **configuração** (`previsao.estrategias=MEDIA_MOVEL,COMPARACAO`). Sem a fábrica, o serviço precisaria de `if (tipo.equals("MEDIA_MOVEL")) new ...` — exatamente o "if espalhado" que o enunciado proíbe. Com o catálogo `Map`, adicionar uma estratégia é registrar uma linha; serviço e menu não mudam. Não usei Factory para `Medicao` ou `Alerta` porque eles têm uma única forma de criação: uma fábrica ali seria indireção sem ganho. |
+| **Singleton** | `servico/ConfiguracaoSistema` | Os **limiares** precisam ser *os mesmos* para quem emite alertas (`ServicoMonitoramento`), para quem os altera (`DadosTerritorio.alterarLimiar`) e para quem os mostra (relatório). Duas instâncias poderiam divergir e o sistema alertaria com um limite e exibiria outro. Construtor **privado** + `getInstancia()`. Não usei Singleton nos DAOs/serviço porque eles recebem dependências pelo construtor — isso é o que permite trocá-los por **mocks** nos testes. |
 | **Builder** | `servico/RelatorioBuilder` → `Relatorio` | O "status completo" junta muitas partes opcionais (território, componentes, sensores, limiares, estratégias, alertas, totais) vindas de fontes diferentes. Um construtor com 8 parâmetros seria ilegível; o Builder adiciona cada parte quando ela está disponível e valida no `build()` (sem território, não gera). |
 
 O código **chama os padrões** em vez de duplicar a criação: `SistemaMonitoramento.main` usa `ConfiguracaoSistema.getInstancia()` e `new FabricaPrevisao(config).criarEstrategiasConfiguradas()`; `ServicoMonitoramento.gerarStatusCompleto()` usa o `RelatorioBuilder`.
@@ -159,7 +159,7 @@ O código **chama os padrões** em vez de duplicar a criação: `SistemaMonitora
 - **Todos no padrão AAA**, com comentários `// Arrange`, `// Act`, `// Assert`.
 - **`assertThrows` das exceções customizadas**: `MedicaoTest` (chuva negativa, umidade > 100 %, NaN), `DadosTerritorioTest` (população negativa, código errado → `AcessoNegadoException`, limiar fora de ordem), `PrevisaoMediaMovelTest`, `FabricaPrevisaoTest`, `ServicoMonitoramentoTest`.
 - **Mockito mockando os DAOs** em `ServicoMonitoramentoTest`: `MedicaoDAO` devolve um histórico controlado e o teste verifica com `verify`/`ArgumentCaptor` que o `AlertaDAO.salvar` foi chamado com nível **CRÍTICO**, valor 60 e limite 50 — **sem banco**. Também verifica que, com menos de 5 leituras, **nenhum** alerta é gravado, e que leitura inválida **não** chega ao `salvar`.
-- **Testes de verdade**: valores esperados calculados à mão (ex.: `(30+40+50+60+70)/5 = 50`; comparação `20 + (20 − 10) = 30`). Fizemos um teste de mutação manual — trocar a divisão da média por `(n+1)` deixa **5 testes vermelhos**.
+- **Testes de verdade**: valores esperados calculados à mão (ex.: `(30+40+50+60+70)/5 = 50`; comparação `20 + (20 − 10) = 30`). Foi feito um teste de mutação manual — trocar a divisão da média por `(n+1)` deixa **5 testes vermelhos**.
 - Extra: `PersistenciaIntegracaoTest` testa os DAOs reais contra um H2 **em memória** (descartável).
 
 ---
@@ -196,10 +196,10 @@ Menu 3 → 3 exporta o histórico consultado de um sensor para `exportacoes/hist
 
 ---
 
-## 🧭 Decisões da equipe
+## 🧭 Decisões de projeto
 
 1. **JDBC puro em vez de Spring Boot**: o enunciado aceita os dois com nota cheia; JDBC deixa explícito o `PreparedStatement` e o `try-with-resources`, que são critérios de avaliação, e o programa sobe em menos de 1 s com `main` simples.
-2. **H2 em modo arquivo** (e não em memória): o requisito "os dados sobrevivem ao reiniciar" só é cumprido com o banco gravado em disco. Nos testes de integração usamos H2 em memória para não sujar o banco real.
+2. **H2 em modo arquivo** (e não em memória): o requisito "os dados sobrevivem ao reiniciar" só é cumprido com o banco gravado em disco. Nos testes de integração é usado H2 em memória para não sujar o banco real.
 3. **Exceções verificadas (checked)**: obrigam quem chama a tratar o erro — um dado inválido não consegue "escapar" calado até o banco.
 4. **Validação no domínio** (`Medicao`, `DadosTerritorio`, `Limiares`): o objeto inválido nem chega a existir, então nenhum caminho do código consegue gravar lixo.
 5. **Sensores com passeio aleatório** (cada leitura parte da anterior) em vez de `Math.random()` solto: gera tendências de alta/queda realistas, para a estratégia de Comparação ter o que comparar. Uma pequena probabilidade de falha e de leitura espúria foi colocada **de propósito** para demonstrar as exceções.
@@ -221,24 +221,24 @@ Menu 3 → 3 exporta o histórico consultado de um sensor para `exportacoes/hist
 
 ## 🤖 Uso de IA
 
-> ⚠️ **Preencham/ajustem esta seção com a verdade do que a equipe fez.**
-
-- **Onde usamos:** assistente de IA (Claude Code, da Anthropic) para estruturar o projeto a partir do enunciado, gerar uma primeira versão das classes, dos testes e deste README, e explicar conceitos (Factory com `Map` de construtores, Mockito com `ArgumentCaptor`, try-with-resources no JDBC).
-- **Como revisamos:** _[descrevam aqui — ex.: cada integrante leu e explicou para os outros as classes da sua parte; rodamos `mvnw test` e o menu completo; alteramos X, Y e Z; conferimos cada item do enunciado na seção "Onde está cada conceito pedido"]_.
-- Todos os integrantes devem ser capazes de explicar qualquer trecho do código na conversa de correção.
+- **Onde usei:** assistente de IA (Claude Code, da Anthropic) para estruturar o projeto a partir do enunciado, gerar uma primeira versão das classes, dos testes e deste README, e explicar conceitos (Factory com `Map` de construtores, Mockito com `ArgumentCaptor`, try-with-resources no JDBC).
+- **Como revisei:** _[descreva aqui com as suas palavras o que você realmente fez — ex.: li cada classe e anotei o que cada método faz; rodei `mvnw test` e o menu completo; quebrei o cálculo da média de propósito para ver os testes falharem; conferi cada item do enunciado na seção "Onde está cada conceito pedido"; alterei X e Y]_.
+- Sou capaz de explicar qualquer trecho do código na conversa de correção.
 
 ---
 
 ## 🧩 Divisão de tarefas
 
-| Integrante | Responsabilidade | Principais arquivos |
-|---|---|---|
-| _[Integrante 1]_ | **Domínio e exceções** | `dominio/*` (ComponenteTerritorial, PontoMonitoramento, Sensor e implementações, DadosTerritorio, Limiares, Medicao, Alerta), `excecao/*` |
-| _[Integrante 2]_ | **Persistência** | `persistencia/*` (ConexaoBanco, MedicaoDAO, AlertaDAO), `schema.sql`, `sistema.properties`, `PersistenciaIntegracaoTest` |
-| _[Integrante 3]_ | **Previsões, alertas e testes** | `EstrategiaPrevisao`, `PrevisaoMediaMovel`, `PrevisaoComparacao`, `servico/*` (ServicoMonitoramento, FabricaPrevisao, ConfiguracaoSistema, RelatorioBuilder), testes unitários |
-| Todos | Menu, README, revisão cruzada | `SistemaMonitoramento.java`, `README.md` |
+Trabalho **individual**: as três frentes que o enunciado sugere dividir entre integrantes ficaram com o mesmo autor, organizadas em etapas na ordem recomendada ("comece simples").
 
-Todos os integrantes commitam no GitHub com mensagens claras.
+| Etapa | Frente | Responsável | Principais arquivos |
+|---|---|---|---|
+| 1 | **Domínio e exceções** | Guilherme Carreri Giampietro | `dominio/*` (ComponenteTerritorial, PontoMonitoramento, Sensor e implementações, DadosTerritorio, Limiares, Medicao, Alerta), `excecao/*` |
+| 2 | **Persistência** | Guilherme Carreri Giampietro | `persistencia/*` (ConexaoBanco, MedicaoDAO, AlertaDAO), `schema.sql`, `sistema.properties`, `PersistenciaIntegracaoTest` |
+| 3 | **Previsões, alertas e testes** | Guilherme Carreri Giampietro | `EstrategiaPrevisao`, `PrevisaoMediaMovel`, `PrevisaoComparacao`, `servico/*` (ServicoMonitoramento, FabricaPrevisao, ConfiguracaoSistema, RelatorioBuilder), testes unitários |
+| 4 | **Menu, bônus e documentação** | Guilherme Carreri Giampietro | `SistemaMonitoramento.java`, `ExportadorCsv`, `README.md` |
+
+Todos os commits do repositório são do autor, com mensagens descritivas.
 
 ---
 
